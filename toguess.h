@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-class toguess
+class assumption
 {
 private:
 	// структура вопросов: вопрос и его id
@@ -21,14 +21,10 @@ private:
 	std::vector <int> donequest;
 	std::vector <s_question> Tquestions;
 	std::vector <s_response> Tresponses;
-	//int step;
-	//ищет id в векторе, если находит, возвращает true
-	bool findInVector(std::vector <int> v, int id);
-	bool findInVector(std::vector <s_question> v, int id);
 	//ищет максимальный id
 	int maxid(std::vector <s_question> _questions);
 	//заменяет нижнее подчёркивание на пробелы
-	char* addspaces(char* str);
+	char* addspaces(char* &str1);
 	//смотрит, есть ли вопросы , на которые пользователь не ответил, если есть, возвращает true
 	bool havequestions();
 	//возвращает id наиболее популярного вопроса
@@ -36,7 +32,7 @@ private:
 public:
 	int step;
 	//консруктор, в котором происходит считывание базы
-	toguess();
+	assumption();
 	//сохранение изменённой базы
 	void save();
 	//создание новой игры: сброс вектора положительных ответов,
