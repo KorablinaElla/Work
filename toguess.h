@@ -1,16 +1,24 @@
 #pragma once
 #include <vector>
+#include "toguess.h"
+#include <iostream>
+#include <algorithm>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
 class assumption
 {
 private:
 	// структура вопросов: вопрос и его id
 	struct s_question{
-		char* question;
+		string question;
 		int id;
 	};
 	// структура ответов: ответ, спиок соответсвующих ему вопрсов, вероятность ответа
 	struct s_response{
-		char* response;
+		string response;
 		std::vector <int> idQuest;
 		double probability;
 	};
@@ -22,19 +30,17 @@ private:
 	std::vector <s_question> Tquestions;
 	std::vector <s_response> Tresponses;
 	//ищет максимальный id
-	int maxid(std::vector <s_question> _questions);
-	//заменяет нижнее подчёркивание на пробелы
-	char* addspaces(char* &str1);
+	const int maxid(const vector <s_question> &_questions);
 	//смотрит, есть ли вопросы , на которые пользователь не ответил, если есть, возвращает true
-	bool havequestions();
+	const bool havequestions();
 	//возвращает id наиболее популярного вопроса
-	int populatQuestion();
-public:
+	const int populatQuestion();
+    public:
 	int step;
 	//консруктор, в котором происходит считывание базы
 	assumption();
 	//сохранение изменённой базы
-	void save();
+	const void save();
 	//создание новой игры: сброс вектора положительных ответов,
 	//загрузка скорректированной базы
 	void newgame();
@@ -43,13 +49,13 @@ public:
 	//корректируются вероятности ответов в соответсвии с ответом на вопрос с id
 	void setQuestion(int id, int q);
 	//попытка выдать ответ
-	int getResponse(int id = 0);
+	const int getResponse(int id = 0);
 	//возвращает ответ с данным id в вектор
-	char* getfResponse(int id);
+	const string getfResponse(int id);
 	//добавление в базу нового персонажа
-	void newResponse(char* response);
+	void newResponse(string response);
 	//добавление вопроса, который отличает нового персонажа
-	void newQuestion(char* q);
+	void newQuestion(string q);
 	//удаляет вопрос из вектора ответов персонажей
 	void dellQuestion(int id);
 };
