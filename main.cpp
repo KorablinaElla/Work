@@ -52,10 +52,9 @@ int main() {
 	cin >> p_ans;
 	//Если нет, то добавляем персонажа в базу
 	if (!ans) {
-		char* response = new char [2024];
+		string response;
 		cout << "Введите загаданного вами персонажа:" << endl;
-		cin >> response;
-		cout<< response <<endl;
+		getline(cin, response);
 		tg.newResponse(response);
 		tg.newQuestion(response);
 		tg.save();
