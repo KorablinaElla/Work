@@ -4,44 +4,42 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <string>
+
 using namespace std;
 
 assumption::assumption()
-{ // конструктор
-	const char* db_q_filename = "questions.txt";
-	const char* db_r_filename = "responses.txt";
-	// Загружаем базу данных
+{ 
+	FILE *file = fopen("questions.txt", "r");
+	string q;
+	int id;
 	// База вопросов
-	FILE *file = fopen(db_q_filename, "r");
-	if (!file)
-	{
-		return;
+	if (!file) {
+		cerr << "File error." << endl;
+		return ;
 	}
 	while (!feof(file))
 	{
 		char word[1025];
 		int id;
 		fscanf(file, "/%s /%i ", &word, &id);
-		char *question = new char[strlen(word)];
-		strcpy(question, word);
+		string question = string(word);
+		replace(question.begin(), question.end(), '_', ' ');
 		s_question Q;
 		Q.id = id;
 		Q.question = question;
 		questions.push_back(Q);
 	}
 	fclose(file);
-
 	// База ответов (персонажей)
-	file = fopen(db_r_filename, "r");
-	if (!file)
-		return;
+	file = fopen("responses.txt", "r");
 	while (!feof(file)) {
 		char resp[1025];
 		int countq;
 		float pro;
 		fscanf(file, "%s /%i", &resp, &countq);
-		char *response = new char[strlen(resp)];
-		strcpy(response, resp);
+		string s=string(resp);
+		replace(s.begin(), s.end(), '_', ' ');
 		vector <int> quests;
 		for (int i = 1; i <= countq; i++)
 		{
@@ -53,11 +51,12 @@ assumption::assumption()
 		s_response thisResponse;
 		thisResponse.idQuest = quests;
 		thisResponse.probability = pro;
-		thisResponse.response = response;
+		thisResponse.response = s;
 		responses.push_back(thisResponse);
 	}
 	fclose(file);
 }
+
 void assumption::newgame() {
 	// Старт новой игры
 	donequest.clear();
@@ -65,8 +64,8 @@ void assumption::newgame() {
 	Tresponses.clear();
 	Tresponses = responses;
 	Tquestions = questions;
-	for (int i = 0; i < Tresponses.size(); i++)
-	  reverse(Tresponses[i].idQuest.begin(), Tresponses[i].idQuest.end());
+	for (auto && t : Tresponses)
+	 reverse(t.idQuest.begin(), t.idQuest.end());
 	//текущий ход (вопрос)
 	step = 1;
 }
@@ -74,31 +73,31 @@ void assumption::newgame() {
 int assumption::getQuestion() {
 	// новый вопрос
 	int id;
-	while (Tresponses[Tresponses.size() - 1].idQuest.size() > 0
-		&& Tresponses[Tresponses.size() - 1].idQuest[Tresponses[Tresponses.size() - 1].idQuest.size() - 1] == -1)
-		Tresponses[Tresponses.size() - 1].idQuest.pop_back();
-	while (Tresponses[Tresponses.size() - 2].idQuest.size() > 0
-		&& Tresponses[Tresponses.size() - 2].idQuest[Tresponses[Tresponses.size() - 2].idQuest.size() - 1] == -1)
-		Tresponses[Tresponses.size() - 2].idQuest.pop_back();
+	while (size_t(Tresponses[size_t(Tresponses.size()) - 1].idQuest.size()) > 0
+		&& Tresponses[size_t(Tresponses.size()) - 1].idQuest[size_t(Tresponses[size_t(Tresponses.size()) - 1].idQuest.size()) - 1] == -1)
+		Tresponses[size_t(Tresponses.size()) - 1].idQuest.pop_back();
+	while (size_t(Tresponses[size_t(Tresponses.size()) - 2].idQuest.size()) > 0
+		&& Tresponses[size_t(Tresponses.size()) - 2].idQuest[size_t(Tresponses[size_t(Tresponses.size()) - 2].idQuest.size()) - 1] == -1)
+		Tresponses[size_t(Tresponses.size()) - 2].idQuest.pop_back();
 	if (step > 1)
 	{
-		if (Tresponses[Tresponses.size() - 1].idQuest.size() == 0)
+		if (size_t(Tresponses[size_t(Tresponses.size()) - 1].idQuest.size()) == 0)
 		{
-			if (Tresponses[Tresponses.size() - 2].idQuest.size() != 0)
-				id = Tresponses[Tresponses.size() - 2].idQuest[Tresponses[Tresponses.size() - 2].idQuest.size() - 1];
+			if (size_t(Tresponses[size_t(Tresponses.size()) - 2].idQuest.size()) != 0)
+				id = Tresponses[size_t(Tresponses.size()) - 2].idQuest[size_t(Tresponses[size_t(Tresponses.size()) - 2].idQuest.size()) - 1];
 
 			else
 			{ // если о обоих на данный момент самых вероятных ответов больше не осталось вопросов, 
 				//и их вероятности раны, лбио почти одинаковы,
 			// то понимажем их вероятность и переходи к другим вопросам.
 				double eps = 0.01;
-				if (Tresponses[Tresponses.size() - 1].probability - Tresponses[Tresponses.size() - 2].probability < eps
+				if (Tresponses[size_t(Tresponses.size()) - 1].probability - Tresponses[size_t(Tresponses.size()) - 2].probability < eps
 					&& havequestions())
 				{
-					Tresponses[Tresponses.size() - 1].probability /= 1.5;
-					Tresponses[Tresponses.size() - 2].probability /= 1.5;
-					for (int i = Tresponses.size() - 1; i > 0; i--)
-					  for (int j = 0; j < i; j++)
+					Tresponses[size_t(Tresponses.size()) - 1].probability /= 1.5;
+					Tresponses[size_t(Tresponses.size()) - 2].probability /= 1.5;
+					for (size_t i = size_t(Tresponses.size()) - 1; i > 0; i--)
+					  for (size_t j = 0; j < i; j++)
 						  if (Tresponses[j].probability > Tresponses[j + 1].probability)
 								swap(Tresponses[j], Tresponses[j + 1]);
 					return getQuestion();
@@ -113,40 +112,43 @@ int assumption::getQuestion() {
 	}
 	else // первый вопрос
 		id = populatQuestion();
-	step++;//перешли к следующему вопросу
-	for (int i = 0; i < Tquestions.size(); i++)
-		if (Tquestions[i].id == id)
+	step++;
+	//перешли к следующему вопросу
+	for (auto && t : Tquestions)
+		if (t.id == id)
 		{
-			cout << addspaces(Tquestions[i].question) << endl;
+			cout << t.question << endl;
 			return id;
 		}
 }
+
 void assumption::setQuestion(int id, int q) // корректируем текущую базу в соответсвии с овтетом на вопрос
 {
 	if (q == 1 )
 	{
 		// У всех вариантов ответа, у которых есть даннный вопрос, повышаем вероятность
-		int k = 0; int ii = 0;
-		for (int i = 0; i < Tresponses.size(); i++)
+		int k = 0; int ii = 0,i=0;
+		for (auto && t : Tresponses)
 		{
-			vector<int>::iterator it = find(Tresponses[i].idQuest.begin(), Tresponses[i].idQuest.end(), id);
-			if (it!= Tresponses[i].idQuest.end())
+			auto it = find(t.idQuest.begin(), t.idQuest.end(), id);
+			if (it != t.idQuest.end())
 			{
 				k++;
 				ii = i;
-				Tresponses[i].probability *= 4;
-				for (int j = 0; j < Tresponses[i].idQuest.size(); j++)
-				  if (Tresponses[i].idQuest[j] == id) Tresponses[i].idQuest[j] = -1;
+				t.probability *= 4;
+				for (auto && tid : t.idQuest)
+				  if (tid == id) tid = -1;
 			}
 			else
 			 // если вопроса нет, понижаем вероятность
-				Tresponses[i].probability /= 1.5;
-			
+				t.probability /= 1.5;	
+			i++;
 		}
-		if (k == 1) Tresponses[ii].probability += 0.2; // если персонаж с даным ответом тоько один, то его вероятность резко повышается
+		if (k == 1) Tresponses[ii].probability += 0.2; 
+		// если персонаж с даным ответом тоько один, то его вероятность резко повышается
 		// сортируем все ответы в соответствии их вероятности
-		for (int i = Tresponses.size() - 1; i > 0; i--)
-		for (int j = 0; j < i; j++)
+		for (size_t i = size_t(Tresponses.size()) - 1; i > 0; i--)
+		for (size_t j = 0; j < i; j++)
 			  if (Tresponses[j].probability > Tresponses[j + 1].probability)
 					swap(Tresponses[j], Tresponses[j + 1]);
 		donequest.push_back(id);
@@ -154,25 +156,26 @@ void assumption::setQuestion(int id, int q) // корректируем теку
 	else if (!q)
 	{ // ЕСЛИ ОТВЕТ ЛОЖЬ
 	// У всех вариантов ответа, у которых есть даннный вопрос, понижаем вероятность
-		for (int i = 0; i < Tresponses.size(); i++)
+		for (auto && t : Tresponses)
+		//for (int i = 0; i < Tresponses.size(); i++)
 		{
-			vector<int>::iterator it = find(Tresponses[i].idQuest.begin(), Tresponses[i].idQuest.end(), id);
-			if (it!= Tresponses[i].idQuest.end())
+			auto it = find(t.idQuest.begin(), t.idQuest.end(), id);
+			if (it!= t.idQuest.end())
 			{
-				Tresponses[i].probability /= 4;
-				for (int j = 0; j < Tresponses[i].idQuest.size(); j++)
-				  if (Tresponses[i].idQuest[j] == id) Tresponses[i].idQuest[j] = -1;
+				t.probability /= 4;
+				for (auto && tid : t.idQuest)
+				  if (tid == id) tid = -1;
 			}
 			else
 			{
 				// а у кого нет, повышаем
-				Tresponses[i].probability += 0.05;
+				t.probability += 0.05;
 			}
 		}
 		// сортируем все ответы в соответствии их вероятности
-		for (int i = Tresponses.size() - 1; i > 0; i--)
+		for (size_t i = size_t(Tresponses.size()) - 1; i > 0; i--)
 		{
-			for (int j = 0; j < i; j++)
+			for (size_t j = 0; j < i; j++)
 			{
 				if (Tresponses[j].probability > Tresponses[j + 1].probability)
 					swap(Tresponses[j], Tresponses[j + 1]);
@@ -181,63 +184,67 @@ void assumption::setQuestion(int id, int q) // корректируем теку
 	}
 	else if (q == 2)
 	{ // Ответ Скорее да
-		int k = 0; int ii = 0;
-		for (int i = 0; i < Tresponses.size(); i++)
+		int k = 0; int ii = 0,i=0;
+		for (auto && t : Tresponses)
 		{
-			vector<int>::iterator it = find(Tresponses[i].idQuest.begin(), Tresponses[i].idQuest.end(), id);
-			if (it!= Tresponses[i].idQuest.end())
+			auto it = find(t.idQuest.begin(), t.idQuest.end(), id);
+			if (it!= t.idQuest.end())
 			{
 				k++;
 				ii = i;
-				Tresponses[i].probability *= 3;
-				for (int j = 0; j < Tresponses[i].idQuest.size(); j++)
-				  if (Tresponses[i].idQuest[j] == id) Tresponses[i].idQuest[j] = -1;
+				t.probability *= 3;
+				for (auto && tid : t.idQuest)
+				  if (tid == id) tid = -1;
 			}
 			else
 			 // если вопроса нет, понижаем вероятность
-				Tresponses[i].probability -= 0.01;
+				t.probability -= 0.01;
+			i++;
 		}
-		if (k == 1) Tresponses[ii].probability += 0.15; // если персонаж с даным ответом тоько один, то его вероятность резко повышается
+		if (k == 1) Tresponses[ii].probability += 0.15; 
+		// если персонаж с даным ответом тоько один, то его вероятность резко повышается
 		// сортируем все ответы в соответствии их вероятности
-		for (int i = Tresponses.size() - 1; i > 0; i--)
-		  for (int j = 0; j < i; j++)
+		for (size_t i = size_t(Tresponses.size()) - 1; i > 0; i--)
+		  for (size_t j = 0; j < i; j++)
 			  if (Tresponses[j].probability > Tresponses[j + 1].probability)
 					swap(Tresponses[j], Tresponses[j + 1]);
 		donequest.push_back(id);
 	}
 	else if (q == 3)
 	{
-		for (int i = 0; i < Tresponses.size(); i++)
+		for (auto && t : Tresponses)
 		{
-			vector<int>::iterator it = find(Tresponses[i].idQuest.begin(), Tresponses[i].idQuest.end(), id);
-			if (it!= Tresponses[i].idQuest.end())
+			auto it = find(t.idQuest.begin(), t.idQuest.end(), id);
+			if (it!= t.idQuest.end())
 			{
-				Tresponses[i].probability -= 0.15;
-				if (Tresponses[i].probability < 0) { Tresponses[i].probability *= 0.001; Tresponses[i].probability = abs(Tresponses[i].probability); }
-				for (int j = 0; j < Tresponses[i].idQuest.size(); j++)
-				  if (Tresponses[i].idQuest[j] == id) Tresponses[i].idQuest[j] = -1;
+				t.probability -= 0.15;
+				if (t.probability < 0)
+				{
+					t.probability *= 0.001;
+					t.probability = abs(t.probability);
+				}
+				for (auto && tid : t.idQuest)
+				  if (tid == id) tid = -1;
 			}
 			else
 			  // а у кого нет, повышаем
-				Tresponses[i].probability += 0.045;
+				t.probability += 0.045;
 		}
 		// сортируем все ответы в соответствии их вероятности
-		for (int i = Tresponses.size() - 1; i > 0; i--)
-		 for (int j = 0; j < i; j++)
+		for (size_t i = size_t(Tresponses.size())- 1; i > 0; i--)
+		 for (size_t j = 0; j < i; j++)
 			 if (Tresponses[j].probability > Tresponses[j + 1].probability)
 					swap(Tresponses[j], Tresponses[j + 1]);
 	}
 }
 
 //ищем ответ
-int assumption::getResponse(int id)
+const int assumption::getResponse(int id)
 {
 	const double eps = 0.05;
 	// попытка получить ответ
 	// Ответ есть, если разница между вероятностью двух, на данный
 	// момент самых подходящих, ответов больше какой-то константы
-	//cout << "ANSWER 1=" << Tresponses[Tresponses.size() - 1].probability << endl;
-	//cout << "ANSWER 2=" << Tresponses[Tresponses.size() - 2].probability << endl;
 	if (Tresponses[Tresponses.size() - 1].probability - Tresponses[Tresponses.size() - 2].probability >= eps || id < 0)
 	{ // ответ есть
 		return Tresponses.size() - 1;
@@ -245,14 +252,15 @@ int assumption::getResponse(int id)
 	//ответа нет
 	else return 0;
 }
-//печатаем ответ
-char* assumption::getfResponse(int id) { return addspaces(Tresponses[id].response); }
 
-void assumption::newResponse(char* response)
+//печатаем ответ
+const string assumption::getfResponse(int id) { return Tresponses[id].response; }
+
+void assumption::newResponse(string response)
 {
 	//необходимо проверить, что ответ не вводят повторно
-	for (int i = 0; i < responses.size(); i++)
-		if (strcmp(responses[i].response, response) == 0) return;
+	for (auto && r : responses)
+	   if (r.response == response)  return;
 	// Добавление новго ответа в базу;
 	s_response thisResponse;
 	thisResponse.idQuest = donequest;
@@ -260,7 +268,8 @@ void assumption::newResponse(char* response)
 	thisResponse.response = response;
 	responses.push_back(thisResponse);
 }
-void assumption::save()
+
+const void assumption::save()
 {
 	// сохранение базы
 	FILE* file = fopen("responses.txt", "w");
@@ -268,11 +277,12 @@ void assumption::save()
 		cout << "Error opening file!" << endl;
 		return;
 	}
-	for (int i = 0; i < responses.size(); i++)
+	for (auto && r : responses)
 	{
-		fprintf(file, "%s /%i ", responses[i].response, responses[i].idQuest.size());
-		for (int j = 0; j < responses[i].idQuest.size(); j++) fprintf(file, "%i ", responses[i].idQuest[j]);
-		fprintf(file, "%f/ \n", responses[i].probability);
+		fprintf(file, "%s /%i ", r.response, size_t(r.idQuest.size()));
+		for (auto && rid : r.idQuest)
+		   fprintf(file, "%i ", rid);
+		fprintf(file, "%f/ \n", r.probability);
 	}
 	fclose(file);
 
@@ -282,29 +292,28 @@ void assumption::save()
 		cout << "Error opening file!" << endl;
 		return;
 	}
-	for (int i = 0; i < questions.size(); i++)
-	  file1 << "/" << questions[i].question << " /" << questions[i].id << " " << endl;
+	for (auto && q : questions)
+	 file1 << "/" << q.question << " /" << q.id << " " << endl;
 }
-void assumption::newQuestion(char* q)
+
+void assumption::newQuestion(string q)
 {// q-объект, который был загад, но его не оказалось в базе
 	cout << "Введите вопрос, который позволит отличить " <<
 		q << " от " << Tresponses[Tresponses.size() - 1].response << endl;
-	char newQ[2024];
-	cin >> newQ;
-	char* Q = new char[strlen(newQ)];
-	strcpy(newQ, Q);
+	string ques;
+	getline(cin, ques);
 	s_question thisQuestion;
 	thisQuestion.id = maxid(questions) + 1;
-	thisQuestion.question = Q;
-	for (int i = 0; i < responses.size(); i++)
+	thisQuestion.question = ques;
+	for (auto && r : responses)
 	{
-		if (strcmp(responses[i].response, q) == 0)
-			responses[i].idQuest.push_back(thisQuestion.id);
+		if ( r.response == q)
+			r.idQuest.push_back(thisQuestion.id);
 	}
 	questions.push_back(thisQuestion);
 }
 
-int assumption::maxid(vector <s_question> _questions)
+const int assumption::maxid(const vector <s_question> &_questions)
 {
 		int max = 0;
 		for_each(_questions.begin(), _questions.end(),
@@ -314,46 +323,42 @@ int assumption::maxid(vector <s_question> _questions)
 
 void assumption::dellQuestion(int id)
 {
-		for (int i = 0; i < Tresponses.size(); i++) {
-		vector<int>::iterator it = find(Tresponses[i].idQuest.begin(), Tresponses[i].idQuest.end(), id);
-		if (it != Tresponses[i].idQuest.end()) {
-			for (int j = 0; j < Tresponses[i].idQuest.size(); j++)
-				if (Tresponses[i].idQuest[j] == id) Tresponses[i].idQuest[j] = -1;
-		}
-	}
-}
-char* assumption::addspaces(char* &str1)
-{
-   for (int i = 0; i < strlen(str1); i++)
-             if (str1[i] == '_') str1[i] = ' ';
-   return str1;
+	    for (auto && t : Tresponses){
+			auto it = find(t.idQuest.begin(), t.idQuest.end(), id);
+		  if (it != t.idQuest.end()) {
+			for (auto && tid : t.idQuest)
+			  if (tid == id) tid = -1;
+		  }
+	    }
 }
 
-bool assumption::havequestions()
+const bool assumption::havequestions()
 {
-		vector<s_response>::iterator it = find_if(Tresponses.begin(), Tresponses.end(), 
-		[](s_response a) {for (int j = 0; j < a.idQuest.size(); j++)
-		if (a.idQuest[j] != '-1') return true;
+	    auto it = find_if(Tresponses.begin(), Tresponses.end(),
+		[](s_response a) {for (auto && j : a.idQuest)
+		if (j != '-1') return true;
 	    return false; });
 	return it != Tresponses.end();
 }
-int assumption::populatQuestion()
+
+const int assumption::populatQuestion()
 {
-		int maxCount = 0;
-		int mid = 0;
-		for (int _id = 1; _id <= questions[questions.size() - 1].id; _id++) // для каждого вопроса
+		int maxCount = 0,mid = 0;
+		for (auto && _id : Tresponses)
+		for (size_t _id = 1; _id <= questions[size_t(questions.size()) - 1].id; _id++) // для каждого вопроса
 		{
 		 int thisCount = 0;
 		 for_each(Tresponses.begin(), Tresponses.end(),
-			 [_id, &thisCount, &maxCount, &mid](s_response a) {for (int j = 0; j < a.idQuest.size(); j++)
-		     {
-			 if (a.idQuest[j] == _id) thisCount++;
-			 if (thisCount > maxCount)
+			 [_id, &thisCount, &maxCount, &mid](s_response a) {
+			 for (auto && j : a.idQuest)
 			 {
+			  if (j == _id) thisCount++;
+			   if (thisCount > maxCount)
+			   {
 				 maxCount = thisCount;
 				 mid = _id;
-			 }
-		 }});
+			   }
+		     }});
 			
 		}
 		return mid;
