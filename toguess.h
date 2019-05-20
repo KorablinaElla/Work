@@ -19,16 +19,16 @@ private:
 	// структура ответов: ответ, спиок соответсвующих ему вопрсов, вероятность ответа
 	struct s_response{
 		string response;
-		std::vector <int> idQuest;
+		vector <int> idQuest;
 		double probability;
 	};
 	// База для всей игры
-	std::vector <s_question> questions;
-	std::vector <s_response> responses;
+	vector <s_question> questions;
+	vector <s_response> responses;
 	//База для текущей игры
-	std::vector <int> donequest;
-	std::vector <s_question> Tquestions;
-	std::vector <s_response> Tresponses;
+	vector <int> donequest;
+	vector <s_question> Tquestions;
+	vector <s_response> Tresponses;
 	//ищет максимальный id
 	const int maxid(const vector <s_question> &_questions);
 	//смотрит, есть ли вопросы , на которые пользователь не ответил, если есть, возвращает true
